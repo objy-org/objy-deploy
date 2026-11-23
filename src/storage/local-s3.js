@@ -93,7 +93,7 @@ export function createLocalS3Driver({ spawnProcess = spawn,
       throw error;
     } finally { await output.close(); }
     try { await ensureBucket(plan, environment); }
-    catch (error) { throw new Error(`Local storage is not ready: ${error.message}. Inspect ${log}, then use objy resume.`); }
+    catch (error) { throw new Error(`Local storage is not ready: ${error.message}. Inspect ${log}, then use objy-deploy resume.`); }
   }
 }
 

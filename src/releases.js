@@ -23,7 +23,7 @@ export function validateRelease(value) {
 
 async function latestSource(fetchImpl) {
   const api = path => fetchImpl(`https://api.github.com/repos/${repository}/${path}`, {
-    headers: { accept: 'application/vnd.github+json', 'user-agent': 'objy-cli' }, signal: AbortSignal.timeout(30000),
+    headers: { accept: 'application/vnd.github+json', 'user-agent': 'objy-deploy' }, signal: AbortSignal.timeout(30000),
   });
   let response = await api('releases/latest'), release;
   if (response.status === 404) {

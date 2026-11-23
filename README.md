@@ -1,18 +1,20 @@
-# objy
+# Objy Deploy
 
 One CLI for your OBJY DB clusters. Deploy locally, with Docker, onto existing VMs, or to Hetzner using Terraform.
 
 ```sh
-npm install --global @objy/cli
-objy --help
+npm install --global @objy/deploy
+objy-deploy --help
 ```
 
-Requires Node.js 22+. The command is `objy` on every supported platform.
+Requires Node.js 22+. The command is `objy-deploy` on every supported platform.
+
+Upgrading from `@objy/cli`? Run `npm uninstall --global @objy/cli`, then install `@objy/deploy`. Your saved deployments stay in `~/.objy`; no redeployment is needed.
 
 ## Browser UI
 
 ```sh
-objy ui
+objy-deploy ui
 ```
 
 Opens a small local dashboard with guided deployment, topology, logs and cluster controls. It shares the CLI's state and credentials. Use `--port 7341` to change the port or `--no-open` to skip opening the browser. The UI listens only on this computer; keep the command running while using it.
@@ -20,16 +22,16 @@ Opens a small local dashboard with guided deployment, topology, logs and cluster
 ## Deploy
 
 ```sh
-objy deploy
+objy-deploy deploy
 ```
 
 Choose a destination, a size, and the connection details. The wizard asks only for missing information.
 
 ```sh
-objy deploy docker --name dev --size tiny
-objy deploy local --name laptop --size small
-objy deploy hetzner --name production --size medium
-objy deploy vm --name private-cluster --size small
+objy-deploy deploy docker --name dev --size tiny
+objy-deploy deploy local --name laptop --size small
+objy-deploy deploy hetzner --name production --size medium
+objy-deploy deploy vm --name private-cluster --size small
 ```
 
 | Size | Nodes | Shards × copies | Memory per node |
@@ -48,15 +50,15 @@ For scripts, use `--storage auto` (the default locally) or `--storage external-s
 ## Manage
 
 ```sh
-objy list
-objy status production
-objy stop production
-objy start production
-objy restart production
-objy logs production --follow
-objy resume production
-objy rename dev my-dev
-objy delete my-dev
+objy-deploy list
+objy-deploy status production
+objy-deploy stop production
+objy-deploy start production
+objy-deploy restart production
+objy-deploy logs production --follow
+objy-deploy resume production
+objy-deploy rename dev my-dev
+objy-deploy delete my-dev
 ```
 
 `deploy` creates and starts a cluster. `start` reuses its saved configuration. `stop` retains infrastructure, object storage and data; cloud resources remain billable. `resume` continues interrupted setup or a lifecycle operation.
@@ -75,8 +77,8 @@ Deletion is available for **Local and Docker only**. It removes the deployment a
 | Hetzner | Terraform 1.7+, a local Terraform checkout, cloud API token and object-storage credentials. |
 
 ```sh
-objy doctor docker
-objy doctor hetzner
+objy-deploy doctor docker
+objy-deploy doctor hetzner
 export OBJY_TERRAFORM_DIRECTORY=/path/to/objydb-terraform
 ```
 
@@ -94,8 +96,8 @@ For unattended deployment, provide `--yes`, the target, name, size and required 
 
 ```sh
 # Supply OBJY_ADMIN_PASSWORD through your environment first.
-objy deploy docker --name dev --size tiny --yes --json
-objy status dev --json
+objy-deploy deploy docker --name dev --size tiny --yes --json
+objy-deploy status dev --json
 ```
 
 `--config deployment.json` provides wizard fields for scripting, including VM connections (`vm0Host`, `vm0User`, `vm0Port`, `vm0Auth`, `vm0Key`, repeated per node). Command flags override the file. Keep credentials in environment variables or a private file.

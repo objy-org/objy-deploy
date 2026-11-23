@@ -1,10 +1,10 @@
 {
-  "name": "@objy/cli",
-  "version": "0.1.0",
-  "description": "Deploy and manage Objy clusters from one small CLI.",
+  "name": "@objy/deploy",
+  "version": "0.1.1",
+  "description": "Objy Deploy — deploy and manage OBJY DB clusters.",
   "type": "module",
   "bin": {
-    "objy": "bin/objy.js"
+    "objy-deploy": "bin/objy-deploy.js"
   },
   "exports": {
     ".": "./src/index.js"
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/objy-org/objy-cli.git"
+    "url": "https://github.com/objy-org/objy-deploy.git"
   },
   "license": "UNLICENSED",
   "publishConfig": {

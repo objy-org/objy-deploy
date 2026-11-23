@@ -19,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: objy-cli-release
+  group: objy-deploy-release
   cancel-in-progress: false
 
 jobs:
@@ -62,8 +62,8 @@ jobs:
       - run: npm version "$RELEASE_VERSION" --no-git-tag-version --allow-same-version --ignore-scripts
       - run: npm run check:package
       - run: npm pack
-      - run: npm install --global --prefix "$RUNNER_TEMP/cli-smoke" ./objy-cli-*.tgz
-      - run: '"$RUNNER_TEMP/cli-smoke/bin/objy" --help'
+      - run: npm install --global --prefix "$RUNNER_TEMP/deploy-smoke" ./objy-deploy-*.tgz
+      - run: '"$RUNNER_TEMP/deploy-smoke/bin/objy-deploy" --help'
       - name: Commit and tag the release
         run: |
           push_with_retry() {
@@ -90,39 +90,39 @@ jobs:
               exit 1
             fi
           else
-            git tag -a "$TAG" -m "OBJY CLI $RELEASE_VERSION"
+            git tag -a "$TAG" -m "Objy Deploy $RELEASE_VERSION"
             push_with_retry "refs/tags/$TAG"
           fi
       - name: Publish npm package
         run: |
           package_visible() {
-            [[ "$(npm view "@objy/cli@$RELEASE_VERSION" version 2>/dev/null || true)" == "$RELEASE_VERSION" ]]
+            [[ "$(npm view "@objy/deploy@$RELEASE_VERSION" version 2>/dev/null || true)" == "$RELEASE_VERSION" ]]
           }
           wait_until_visible() {
             for attempt in $(seq 1 30); do
               if package_visible; then return 0; fi
-              echo "Waiting for @objy/cli@$RELEASE_VERSION to become visible ($attempt/30)"
+              echo "Waiting for @objy/deploy@$RELEASE_VERSION to become visible ($attempt/30)"
               sleep 10
             done
             return 1
           }
 
           if package_visible; then
-            echo "@objy/cli@$RELEASE_VERSION is already published"
+            echo "@objy/deploy@$RELEASE_VERSION is already published"
           elif ! npm publish --tag "$NPM_TAG" --provenance --access public; then
             echo "Publish did not complete cleanly; checking for an already accepted release"
             wait_until_visible
           else
             wait_until_visible
           fi
-          npm dist-tag add "@objy/cli@$RELEASE_VERSION" "$NPM_TAG"
+          npm dist-tag add "@objy/deploy@$RELEASE_VERSION" "$NPM_TAG"
       - name: Create GitHub release
         run: |
           TAG="v$RELEASE_VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" objy-cli-*.tgz --clobber
+            gh release upload "$TAG" objy-deploy-*.tgz --clobber
           elif [[ "$RELEASE_VERSION" == *-* ]]; then
-            gh release create "$TAG" objy-cli-*.tgz --generate-notes --verify-tag --prerelease
+            gh release create "$TAG" objy-deploy-*.tgz --generate-notes --verify-tag --prerelease
           else
-            gh release create "$TAG" objy-cli-*.tgz --generate-notes --verify-tag
+            gh release create "$TAG" objy-deploy-*.tgz --generate-notes --verify-tag
           fi

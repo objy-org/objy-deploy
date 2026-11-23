@@ -21,8 +21,8 @@ export function parseCommand(argv) {
   const { values, positionals } = parseArgs({ args: argv, allowPositionals: true, strict: true,
     options: Object.fromEntries(Object.entries(optionTypes).map(([name, type]) => [name, { type, ...(shorts[name] ? { short: shorts[name] } : {}) }])) });
   const [command, subject, ...extra] = positionals;
-  if (extra.length > (command === 'rename' ? 1 : 0)) throw new Error('Too many arguments. Run objy --help.');
-  if (command && !allowed[command]) throw new Error(`Unknown command: ${command}. Run objy --help.`);
+  if (extra.length > (command === 'rename' ? 1 : 0)) throw new Error('Too many arguments. Run objy-deploy --help.');
+  if (command && !allowed[command]) throw new Error(`Unknown command: ${command}. Run objy-deploy --help.`);
   for (const name of Object.keys(values)) {
     if (['help', 'version', 'home', 'json'].includes(name)) continue;
     if (!allowed[command]?.includes(name)) throw new Error(`--${name} is not valid for ${command || 'the menu'}`);
@@ -47,13 +47,13 @@ export async function main(argv = process.argv.slice(2), { input = process.stdin
       output.write(options.json ? JSON.stringify({ version: pkg.version }) + '\n' : `${pkg.version}\n`); return 0;
     }
     if (options.help || command === 'help') { output.write(options.json ? JSON.stringify({ help }) + '\n' : help); return 0; }
-    if (!command && options.json) throw new Error('Specify a command with --json, for example objy list --json.');
+    if (!command && options.json) throw new Error('Specify a command with --json, for example objy-deploy list --json.');
     if (!command && (!input.isTTY || !output.isTTY)) { output.write(help); return 0; }
     const manager = managerFactory({ root: options.home, environment });
     if (command === 'ui') {
       const { startUi } = await import('./ui/server.js');
       const ui = await startUi({ manager, environment, port: options.port === undefined ? 7340 : Number(options.port), openBrowser: !options['no-open'] });
-      output.write(options.json ? JSON.stringify({ url: ui.url }) + '\n' : `\nObjy is open at ${ui.url}\nPress Ctrl+C to close the UI.\n`);
+      output.write(options.json ? JSON.stringify({ url: ui.url }) + '\n' : `\nObjy Deploy is open at ${ui.url}\nPress Ctrl+C to close the UI.\n`);
       return 0;
     }
     const interactive = input.isTTY && output.isTTY && !options.json;
@@ -62,7 +62,7 @@ export async function main(argv = process.argv.slice(2), { input = process.stdin
       try { return await terminal.question(prompt); } finally { terminal.close(); }
     };
     const ask = async (prompt, choices) => {
-      if (!interactive) throw new Error('Specify a deployment name. Run objy list --json to see saved deployments.');
+      if (!interactive) throw new Error('Specify a deployment name. Run objy-deploy list --json to see saved deployments.');
       const terminal = createInterface({ input, output });
       const abort = new AbortController();
       terminal.on('SIGINT', () => { abort.abort(); terminal.close(); });
@@ -78,7 +78,7 @@ export async function main(argv = process.argv.slice(2), { input = process.stdin
       } finally { terminal.close(); }
     };
     if (!command) {
-      output.write('\nobjy\n');
+      output.write('\nObjy Deploy\n');
       command = await ask('What would you like to do?', [
         { value: 'deploy', label: 'Deploy a cluster' },
         { value: 'manage', label: 'Manage deployments' },
@@ -87,7 +87,7 @@ export async function main(argv = process.argv.slice(2), { input = process.stdin
     }
     const pickDeployment = async () => {
       const records = await manager.list();
-      if (!records.length) throw new Error('No deployments yet. Start with objy deploy.');
+      if (!records.length) throw new Error('No deployments yet. Start with objy-deploy deploy.');
       return ask('Choose a deployment', records.map(r => ({ value: r.name, label: `${r.name} · ${r.target} · ${r.state}` })));
     };
     if (command === 'manage') {
@@ -119,7 +119,7 @@ export async function main(argv = process.argv.slice(2), { input = process.stdin
         values = await runWizard({ input, output, initial: values });
         if (!values) { output.write('Cancelled.\n'); return 0; }
       } else {
-        if (!options.yes) throw new Error('Noninteractive deployment requires --yes and all required settings. Run objy deploy in a terminal for guided setup.');
+        if (!options.yes) throw new Error('Noninteractive deployment requires --yes and all required settings. Run objy-deploy deploy in a terminal for guided setup.');
         if (!values.target || !values.name || !values.preset) throw new Error('Specify the target, --name and --size (tiny, small, medium, large or custom).');
       }
       result = await manager.deploy(values, { onEvent: emit });
@@ -138,7 +138,7 @@ export async function main(argv = process.argv.slice(2), { input = process.stdin
       if (command === 'status') result = await manager.status(subject);
       else if (command === 'rename') {
         if (!newName && interactive) newName = await question('New deployment name: ');
-        if (!newName) throw new Error('Specify the new name: objy rename <name> <new-name>');
+        if (!newName) throw new Error('Specify the new name: objy-deploy rename <name> <new-name>');
         result = await manager.rename(subject, newName);
       } else if (command === 'delete') {
         const preview = await manager.deletionInfo(subject);
@@ -193,7 +193,7 @@ export function logDelta(previous, next) {
 }
 
 function format(value) {
-  if (Array.isArray(value)) return value.length ? '\n' + value.map(r => `${r.name.padEnd(22)} ${r.target.padEnd(9)} ${r.state}`).join('\n') + '\n' : 'No deployments yet. Start with objy deploy.\n';
+  if (Array.isArray(value)) return value.length ? '\n' + value.map(r => `${r.name.padEnd(22)} ${r.target.padEnd(9)} ${r.state}`).join('\n') + '\n' : 'No deployments yet. Start with objy-deploy deploy.\n';
   let text = `\n${value.name} · ${value.target} · ${value.state}\n`;
   if (value.release) text += `Server: ${value.release.version}\n`;
   if (value.topology?.endpoint) text += `Endpoint: ${value.topology.endpoint}\n`;
@@ -206,27 +206,27 @@ function format(value) {
 }
 
 const help = `
-objy — deploy and manage your clusters
+Objy Deploy — deploy and manage your clusters
 
-  objy                         Open the interactive menu
-  objy deploy [target]         Deploy a cluster
-  objy list                    List your deployments
-  objy status [name]           Show health and topology
-  objy start [name]            Start database nodes
-  objy stop [name]             Stop nodes; retain infrastructure and data
-  objy restart [name]          Stop, then start nodes
-  objy logs [name] [-f]        Read or follow logs
-  objy resume [name]           Continue interrupted work
-  objy delete [name]           Delete a Local or Docker deployment and local data
-  objy rename <name> <new-name> Rename a deployment
-  objy doctor [target]         Check dependencies
-  objy ui                      Open the local browser UI
+  objy-deploy                          Open the interactive menu
+  objy-deploy deploy [target]          Deploy a cluster
+  objy-deploy list                     List your deployments
+  objy-deploy status [name]            Show health and topology
+  objy-deploy start [name]             Start database nodes
+  objy-deploy stop [name]              Stop nodes; retain infrastructure and data
+  objy-deploy restart [name]           Stop, then start nodes
+  objy-deploy logs [name] [-f]         Read or follow logs
+  objy-deploy resume [name]            Continue interrupted work
+  objy-deploy delete [name]            Delete a Local or Docker deployment and local data
+  objy-deploy rename <name> <new-name> Rename a deployment
+  objy-deploy doctor [target]          Check dependencies
+  objy-deploy ui                       Open the local browser UI
 
 Targets: local, docker, vm, hetzner
 Sizes:   tiny, small, medium, large, custom
 
-  objy deploy docker --name dev --size tiny
-  objy deploy hetzner --name production --size small
+  objy-deploy deploy docker --name dev --size tiny
+  objy-deploy deploy hetzner --name production --size small
 
 Deploy: --name, --size, --region, --protocol http|https, --domain
 Custom: --shards, --replicas, --memory <MiB>

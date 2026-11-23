@@ -49,16 +49,16 @@ export function createManager({ environment = process.env, root = cliHome(enviro
       if (next === ctx.plan.nodes.length && topology.endpointReady) return topology;
       await delay(2000);
     }
-    throw new Error('Nodes did not become ready in time. Inspect logs, then use objy resume.');
+    throw new Error('Nodes did not become ready in time. Inspect logs, then use objy-deploy resume.');
   }
   async function lifecycle(id, action, { onEvent = () => {}, resume = false } = {}) {
     return withLock(join(directory(id), 'setup.lock'), async () => {
       const ctx = await context(id);
       const { record, secrets, driver, paths } = ctx;
-      if (record.management?.operation?.action === 'delete' && record.management.operation.status === 'pending') throw new Error('Deletion is unfinished. Use objy resume to finish deleting this deployment.');
-      if (record.phase !== 'ready') throw new Error('Finish setup with objy resume first.');
+      if (record.management?.operation?.action === 'delete' && record.management.operation.status === 'pending') throw new Error('Deletion is unfinished. Use objy-deploy resume to finish deleting this deployment.');
+      if (record.phase !== 'ready') throw new Error('Finish setup with objy-deploy resume first.');
       const pending = record.management?.operation;
-      if (pending?.status === 'pending' && !resume) throw new Error('An operation is unfinished. Use objy resume first.');
+      if (pending?.status === 'pending' && !resume) throw new Error('An operation is unfinished. Use objy-deploy resume first.');
       if (resume) {
         if (!pending || pending.status !== 'pending') throw new Error('There is no unfinished operation.');
         action = pending.action;
@@ -82,7 +82,7 @@ export function createManager({ environment = process.env, root = cliHome(enviro
           await driver.stop(paths, { environment: ctx.environment, services: ctx.plan.nodes.map(node => node.service || node.id) });
           const observed = await driver.status(paths, { environment: ctx.environment });
           const nodes = ctx.plan.nodes.map(node => observed.find(item => item.nodeId === node.id));
-          if (nodes.some(node => !node || !['exited', 'inactive', 'stopped'].includes(node.state))) throw new Error('Not all nodes have confirmed shutdown. Use objy resume after checking logs.');
+          if (nodes.some(node => !node || !['exited', 'inactive', 'stopped'].includes(node.state))) throw new Error('Not all nodes have confirmed shutdown. Use objy-deploy resume after checking logs.');
         });
         if (['start', 'restart'].includes(action)) {
           if (ctx.storage?.start) {
