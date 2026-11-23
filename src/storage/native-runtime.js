@@ -38,7 +38,7 @@ export function createStorageRuntimeStore({ root, fetchImpl = fetch } = {}) {
         emit(`Downloading local S3 storage (SeaweedFS ${release.version})`);
         const url = `https://github.com/seaweedfs/seaweedfs/releases/download/${release.version}/${release.file}`;
         const response = await fetchImpl(url, { signal: AbortSignal.timeout(120000), redirect: 'follow' });
-        if (!response.ok) throw new Error(`Local storage download failed (HTTP ${response.status}). Use objy-deploy resume to retry.`);
+        if (!response.ok) throw new Error(`Local storage download failed (HTTP ${response.status}). Use objyd resume to retry.`);
         if (response.url && !response.url.startsWith('https:')) throw new Error('Storage download redirected away from HTTPS');
         const chunks = []; let size = 0;
         for await (const chunk of response.body) {

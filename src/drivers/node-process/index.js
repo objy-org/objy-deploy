@@ -244,7 +244,7 @@ export async function terminate(records) {
     if (!(await Promise.all(records.map(ownsProcess))).some(Boolean)) return;
     await delay(250);
   }
-  throw new Error('Graceful shutdown is still pending. Processes were not force-killed; check logs and use objy-deploy resume.');
+  throw new Error('Graceful shutdown is still pending. Processes were not force-killed; check logs and use objyd resume.');
 }
 
 async function readLogs(paths, { node, tail = 200 } = {}) {

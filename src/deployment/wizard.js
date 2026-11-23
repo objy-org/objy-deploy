@@ -7,7 +7,7 @@ export async function runWizard({ input = process.stdin, output = process.stdout
   let sink;
   const abort = new AbortController();
   if (!ask) {
-    if (!input.isTTY || !output.isTTY) throw new Error('Run objy-deploy deploy in an interactive terminal');
+    if (!input.isTTY || !output.isTTY) throw new Error('Run objyd deploy in an interactive terminal');
     sink = new Writable({ write(chunk, _encoding, callback) { if (!sink.muted) output.write(chunk); callback(); } });
     sink.isTTY = true; sink.columns = output.columns;
     terminal = createInterface({ input, output: sink, terminal: true });

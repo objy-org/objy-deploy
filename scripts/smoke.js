@@ -57,7 +57,7 @@ try {
     console.log(`${name}: deployment, topology, persistence, stop/start/restart and logs passed`);
   }
   const original = await manager.status('smoke-auto');
-  const renamed = JSON.parse((await runProcess(process.execPath, ['bin/objy-deploy.js', 'rename', 'smoke-auto', 'smoke-renamed', '--home', root, '--json'])).stdout);
+  const renamed = JSON.parse((await runProcess(process.execPath, ['bin/objyd.js', 'rename', 'smoke-auto', 'smoke-renamed', '--home', root, '--json'])).stdout);
   assert.equal(renamed.id, original.id); assert.equal(renamed.topology.endpoint, original.topology.endpoint);
   await assert.rejects(manager.status('smoke-auto'), /Unknown deployment/);
   await manager.act('smoke-renamed', 'restart', { onEvent });
@@ -67,7 +67,7 @@ try {
   const client = new S3Client({ endpoint: storage.endpoint, region: storage.region, forcePathStyle: true,
     credentials: { accessKeyId: credentials.accessKey, secretAccessKey: credentials.secretKey } });
   try {
-    const deleted = JSON.parse((await runProcess(process.execPath, ['bin/objy-deploy.js', 'delete', 'smoke-local', '--yes', '--home', root, '--json'])).stdout);
+    const deleted = JSON.parse((await runProcess(process.execPath, ['bin/objyd.js', 'delete', 'smoke-local', '--yes', '--home', root, '--json'])).stdout);
     assert.equal(deleted.state, 'deleted');
     const objects = await client.send(new ListObjectsV2Command({ Bucket: storage.bucket, Prefix: localPlan.persistence.prefix, MaxKeys: 1 }));
     assert.ok(objects.Contents?.length, 'Deleting an external-S3 deployment must preserve its S3 data');
